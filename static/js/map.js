@@ -471,7 +471,6 @@ function isTemporaryHidden(pokemonId) {
 
 function pokemonLabel(item) {
     var name = item['pokemon_name']
-    var rarityDisplay = item['pokemon_rarity'] ? '(' + item['pokemon_rarity'] + ')' : ''
     var types = item['pokemon_types']
     var typesDisplay = ''
     var encounterId = item['encounter_id']
@@ -500,11 +499,6 @@ function pokemonLabel(item) {
     var details = ''
     if (atk != null && def != null && sta != null) {
         var iv = getIv(atk, def, sta)
-        details =
-            '<div>' +
-            'IV: ' + iv.toFixed(1) + '% (' + atk + '/' + def + '/' + sta + ')' +
-            '</div>'
-
         if (cp != null && (cpMultiplier != null || level != null)) {
             var pokemonLevel
             if (level != null) {
@@ -512,14 +506,21 @@ function pokemonLabel(item) {
             } else {
                 pokemonLevel = getPokemonLevel(cpMultiplier)
             }
-            details +=
+            if (iv === 100) {
+                details =
                 '<div>' +
-                i8ln('CP') + ' : ' + cp + ' | ' + i8ln('Level') + ' : ' + pokemonLevel +
+                '<b>IV: ' + iv.toFixed(0) + '%</b> | <b>' + i8ln('cp') + ': </b>' + cp + ' | <b>Level:</b> ' + pokemonLevel +
                 '</div>'
+            } else {
+                details =
+                '<div>' +
+                '<b>IV: ' + iv.toFixed(0) + '%</b> (' + atk + '/' + def + '/' + sta + ')' + '<br/><b>' + i8ln('cp') + ': </b>' + cp + ' | <b>Level:</b> ' + pokemonLevel +
+                '</div>'
+            }
         }
         details +=
             '<div>' +
-            i8ln('Moves') + ' : ' + pMove1 + ' / ' + pMove2 +
+            pMove1 + ' / ' + pMove2 +
             '</div>'
     }
     if (weatherBoostedCondition !== 0) {
@@ -541,37 +542,48 @@ function pokemonLabel(item) {
         details +=
             '</div>'
     }
+    
+    var weatherIcon = ''
+    if (weatherBoostedCondition !== 0) {
+        weatherIcon = ' <img src="static/weather/i-' + weatherBoostedCondition + '.png" style="float:right;margin:auto;width:35px;height:auto;right:10px;"/> '
+    }
+
     var contentstring =
         '<div>' +
         '<b>' + name + '</b>'
+    if (gender !== undefined && id !== 201) {
+        contentstring += ' ' + genderType[gender - 1] + ''
+    }
     if (form !== null && form > 0 && forms.length > form) {
         contentstring += ' (' + forms[item['form']] + ')'
     }
-    var coordText = latitude.toFixed(6) + ', ' + longitude.toFixed(7)
-    if (hidePokemonCoords === true) {
-        coordText = i8ln('Directions')
+    var notifyIcon = '<i class="fa fa-volume-up" style="font-size:20px;color:grey"></i></a>&nbsp&nbsp&nbsp&nbsp'
+    if (notifiedPokemon.indexOf(item['pokemon_id']) > -1) {
+        notifyIcon = '<i class="fa fa-volume-up" style="font-size:20px;color:red"></i></a>&nbsp&nbsp&nbsp&nbsp'
     }
     contentstring += '<span> - </span>' +
         '<small>' +
-        '<a href="https://pokemon.gameinfo.io/' + languageSite + '/pokemon/' + id + '" target="_blank" title="' + i8ln('View in Pokedex') + '">#' + id + '</a>' +
+        '<a href="https://pokewiki.' + languageSite + '/' + name + '" target="_blank" title="' + i8ln('View in Pokedex') + '">#' + id + '</a>' +
+         weatherIcon +
         '</small>' +
-        '<span> ' + rarityDisplay + '</span>' +
-        '<span> - </span>' +
-        '<small>' + typesDisplay + '</small>' +
         '</div>' +
+        '<span>' +
+        '<sup>' +
+        typesDisplay +
+         '</sup>' +
+        '</span>' +
         '<div>' +
         i8ln('Disappears at') + ' ' + getTimeStr(disappearTime) +
         ' <span class="label-countdown" disappears-at="' + disappearTime + '">(00m00s)</span>' +
         '</div>' +
-        '<div>' +
-        i8ln('Location') + ': <a href="javascript:void(0)" onclick="javascript:openMapDirections(' + latitude + ', ' + longitude + ')" title="' + i8ln('View in Maps') + '">' + coordText + '</a>' +
-        '</div>' +
         details +
         '<div>' +
-        '<a href="javascript:excludePokemon(' + id + ')">' + i8ln('Exclude') + '</a>&nbsp&nbsp' +
-        '<a href="javascript:notifyAboutPokemon(' + id + ')">' + i8ln('Notify') + '</a>&nbsp&nbsp' +
-        '<a href="javascript:removePokemonMarker(\'' + encounterId + '\')">' + i8ln('Remove') + '</a>&nbsp&nbsp' +
-        '<a href="javascript:void(0);" onclick="javascript:toggleOtherPokemon(' + id + ');" title="' + i8ln('Toggle display of other Pokemon') + '">' + i8ln('Toggle Others') + '</a>' +
+        '<a href="javascript:exMinIV(' + id + ') "title="' + i8ln('Exclude this Pokemon from MinIV/Lvl') + '"><i class="fa fa-thumbs-up" style="font-size:20px;color:grey"></i></a>&nbsp&nbsp&nbsp&nbsp' +
+        '<a href="javascript:excludePokemon(' + id + ') "title="' + i8ln('Hide this Pokemon') + '"><i class="fa fa-thumbs-down" style="font-size:20px;color:grey"></i></a>&nbsp&nbsp&nbsp&nbsp' +
+        '<a href="javascript:notifyAboutPokemon(' + id + ') "title="' + i8ln('Notifiy about this Pokemon') + '">' + notifyIcon +
+        '<a href="javascript:removePokemonMarker(\'' + encounterId + '\') "title="' + i8ln('Remove THIS Pokemon from the map') + '"><i class="fa fa-trash" style="font-size:20px;color:grey"></i></a>&nbsp&nbsp&nbsp&nbsp' +
+        '<a href="javascript:void(0);" onclick="javascript:toggleOtherPokemon(' + id + ');" title="' + i8ln('Toggle display of other Pokemon') + '"><i class="fa fa-filter" style="font-size:20px;color:grey"></i></a>&nbsp&nbsp&nbsp&nbsp' +
+        '<a href="javascript:void(0)" onclick="javascript:openMapDirections(' + latitude + ', ' + longitude + ')" title="' + i8ln('View in Maps') + '"><i class="fa fa-road" style="font-size:20px;color:grey"></a>' +
         '</div>'
     return contentstring
 }
@@ -2306,7 +2318,7 @@ function showGymDetails(id) { // eslint-disable-line no-unused-vars
         var lastScannedStr = ''
         if (result.last_scanned != null) {
             lastScannedStr =
-                '<div style="font-size: .7em">' +
+                '<div style="font-size: .9em">' +
                 i8ln('Last Scanned') + ' : ' + getDateStr(result.last_scanned) + ' ' + getTimeStr(result.last_scanned) +
                 '</div>'
         }
@@ -2386,7 +2398,7 @@ function showGymDetails(id) { // eslint-disable-line no-unused-vars
             '<div>' +
             park +
             '</div>' +
-            '<div style="font-size: .7em">' +
+            '<div style="font-size: .9em">' +
             i8ln('Last Modified') + ' : ' + lastModifiedStr +
             '</div>' +
             lastScannedStr +

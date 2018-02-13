@@ -158,6 +158,27 @@ if ($blockIframe) {
     </header>
     <!-- NAV -->
     <nav id="nav">
+    	<div>
+            <center>
+                <a href="https://pokemon-go-fans.de/" target="_blank" style="margin-top: 5px; vertical-align: middle;padding:0 5px;">
+                <img src="static/images/news.png" title="POKEMON-GO-FANS.DE" border="0" style="display: inline-block; margin-top: 10px; max-width:100%; height:auto;">
+                </a>
+            </center>
+        </div>
+         <div>
+            <center>
+                <a href="https://discord.gg/25B53uR" target="_blank" style="margin-top: 2px; vertical-align: middle;padding:0 5px;">
+                <img src="static/images/disc.png" title="PokémonGo Göttingen" border="0" style="display: inline-block; margin-top: -4px; padding:-2px -2px 0 0; max-width:100%; height:auto;">
+                </a>
+            </center>
+        </div>
+         <div>
+            <center>
+                <a href=" https://www.paypal.me/PoGoe/5 " target="_blank" style="margin-top: 2px; vertical-align: middle;padding:0 5px;">
+                <img src="static/images/spende.png" title="PayPal Spende ❤️" border="0" style="display: inline-block; margin-top: -4px; padding:-2px -2px 0 0; max-width:100%; height:auto;">
+                </a>
+            </center>
+        </div>
         <div id="nav-accordion">
             <?php
             if (!$noPokemon) {
@@ -589,7 +610,7 @@ if ($blockIframe) {
             if (!$noNotifyPokemon) {
                 echo '<div class="form-control hide-select-2">
                     <label for="notify-pokemon">
-                        <h3>' . i8ln('Notify of Pokemon') . '</h3><a href="#" class="select-all">All</a>/<a href="#" class="hide-all">None</a>
+                       <h3>'.i8ln('Notify of Pokemon').'</h3><a href="#" class="select-all">'.i8ln('All').'</a>/<a href="#" class="hide-all">'.i8ln('None').'</a>
                         <div style="max-height:165px;overflow-y:auto;">
                             <input id="notify-pokemon" type="text" readonly="true"/>';
                 pokemonFilterImages($noPokemonNumbers);

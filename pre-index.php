@@ -168,7 +168,7 @@ if ($blockIframe) {
          <div>
             <center>
                 <a href="https://discord.gg/25B53uR" target="_blank" style="margin-top: 2px; vertical-align: middle;padding:0 5px;">
-                <img src="static/images/disc.png" title="PokémonGo Göttingen" border="0" style="display: inline-block; margin-top: -4px; padding:-2px -2px 0 0; max-width:100%; height:auto;">
+                <img src="static/images/discord.png" title="PokémonGo Göttingen" border="0" style="display: inline-block; margin-top: -4px; padding:-2px -2px 0 0; max-width:100%; height:auto;">
                 </a>
             </center>
         </div>

@@ -542,7 +542,7 @@ function pokemonLabel(item) {
         details +=
             '</div>'
     }
-    
+
     var weatherIcon = ''
     if (weatherBoostedCondition !== 0) {
         weatherIcon = ' <img src="static/weather/i-' + weatherBoostedCondition + '.png" style="float:right;margin:auto;width:35px;height:auto;right:10px;"/> '
@@ -973,15 +973,23 @@ function customizePokemonMarker(marker, item, skipNotification) {
     addListeners(marker)
 }
 
+function getGymLevel(item) {
+    return 6 - item['slots_available']
+}
+
 function getGymMarkerIcon(item) {
     var park = item['park']
     var level = item.raid_level
     var team = item.team_id
     var teamStr = ''
-    if (team === 0 || level === null) {
+    if (team === 0) {
         teamStr = gymTypes[item['team_id']]
-    } else {
+    } else if (item['raid_pokemon_id'] != null && item.raid_end > Date.now()) {
         teamStr = gymTypes[item['team_id']] + '_' + level
+    } else if (item['raid_level'] !== null && item.raid_end > Date.now()) {
+        teamStr = gymTypes[item['team_id']] + '_' + getGymLevel(item)
+    } else {
+        teamStr = gymTypes[item['team_id']] + '_' + getGymLevel(item)
     }
     var exIcon = ''
     if ((((park !== 'None' && park !== undefined && onlyTriggerGyms === false && park) || (item['sponsor'] !== undefined && item['sponsor'] > 0) || triggerGyms.includes(item['gym_id'])) && (noExGyms === false))) {
@@ -994,22 +1002,14 @@ function getGymMarkerIcon(item) {
             exIcon +
             '</div>'
     } else if (item['raid_level'] !== null && item.raid_end > Date.now()) {
-        var raidEgg = ''
-        if (item['raid_level'] <= 2) {
-            raidEgg = 'normal'
-        } else if (item['raid_level'] <= 4) {
-            raidEgg = 'rare'
-        } else {
-            raidEgg = 'legendary'
-        }
         return '<div style="position:relative;">' +
             '<img src="static/forts/' + Store.get('gymMarkerStyle') + '/' + teamStr + '.png" style="width:55px;height:auto;"/>' +
-            '<img src="static/raids/egg_' + raidEgg + '.png" style="width:30px;height:auto;position:absolute;top:8px;right:12px;"/>' +
+            '<img src="static/raids/egg_' + item['raid_level'] + '.png" style="width:35px;height:auto;position:absolute;top:8px;right:10px;"/>' +
             exIcon +
             '</div>'
     } else {
         return '<div>' +
-            '<img src="static/forts/' + Store.get('gymMarkerStyle') + '/' + gymTypes[item['team_id']] + '.png" style="width:48px;height: auto;"/>' +
+            '<img src="static/forts/' + Store.get('gymMarkerStyle') + '/' + teamStr + '.png" style="width:48px;height: auto;"/>' +
             exIcon +
             '</div>'
     }

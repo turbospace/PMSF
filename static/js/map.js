@@ -29,6 +29,7 @@ var $switchGymSidebar
 var $switchTinyRat
 var $switchBigKarp
 var $selectDirectionProvider
+var $switchExEligible
 
 var language = document.documentElement.lang === '' ? 'en' : document.documentElement.lang
 var languageSite = 'en'
@@ -356,8 +357,10 @@ function createLocationMarker() {
 function initSidebar() {
     $('#gyms-switch').prop('checked', Store.get('showGyms'))
     $('#gym-sidebar-switch').prop('checked', Store.get('useGymSidebar'))
+    $('#ex-eligible-switch').prop('checked', Store.get('exEligible'))
     $('#gym-sidebar-wrapper').toggle(Store.get('showGyms') || Store.get('showRaids'))
     $('#gyms-filter-wrapper').toggle(Store.get('showGyms'))
+
     $('#team-gyms-only-switch').val(Store.get('showTeamGymsOnly'))
     $('#open-gyms-only-switch').prop('checked', Store.get('showOpenGymsOnly'))
     $('#raids-switch').prop('checked', Store.get('showRaids'))
@@ -389,6 +392,10 @@ function initSidebar() {
     $('#cries-switch').prop('checked', Store.get('playCries'))
     $('#cries-switch-wrapper').toggle(Store.get('playSound'))
     $('#cries-type-filter-wrapper').toggle(Store.get('playCries'))
+
+    if (Store.get('showGyms') === true || Store.get('showRaids') === true) {
+        $('#gyms-raid-filter-wrapper').toggle(true)
+    }
     if (document.getElementById('next-location')) {
         var searchBox = new google.maps.places.Autocomplete(document.getElementById('next-location'))
         $('#next-location').css('background-color', $('#geoloc-switch').prop('checked') ? '#e0e0e0' : '#ffffff')
@@ -1421,6 +1428,7 @@ function loadRawData() {
     var loadMinLevel = Store.get('remember_text_min_level')
     var bigKarp = Boolean(Store.get('showBigKarp'))
     var tinyRat = Boolean(Store.get('showTinyRat'))
+    var exEligible = Boolean(Store.get('exEligible'))
 
     var bounds = map.getBounds()
     var swPoint = bounds.getSouthWest()
@@ -1443,6 +1451,7 @@ function loadRawData() {
             'luredonly': loadLuredOnly,
             'gyms': loadGyms,
             'lastgyms': lastgyms,
+            'exEligible': exEligible,
             'scanned': loadScanned,
             'lastslocs': lastslocs,
             'spawnpoints': loadSpawnpoints,
@@ -1748,6 +1757,11 @@ function processGyms(i, item) {
     }
 
     if (raidLevel > Store.get('maxRaidLevel') && item.raid_end > Date.now()) {
+        removeGymFromMap(item['gym_id'])
+        return true
+    }
+
+    if (Store.get('exEligible') && item.park === null) {
         removeGymFromMap(item['gym_id'])
         return true
     }
@@ -2821,6 +2835,24 @@ $(function () {
         })
         updateMap()
     })
+    $switchExEligible = $('#ex-eligible-switch')
+
+    $switchExEligible.on('change', function () {
+        Store.set('exEligible', this.checked)
+        lastgyms = false
+        $.each(['gyms'], function (d, dType) {
+            $.each(mapData[dType], function (key, value) {
+                // for any marker you're turning off, you'll want to wipe off the range
+                if (mapData[dType][key].marker.rangeCircle) {
+                    mapData[dType][key].marker.rangeCircle.setMap(null)
+                    delete mapData[dType][key].marker.rangeCircle
+                }
+                mapData[dType][key].marker.setMap(null)
+            })
+            mapData[dType] = {}
+        })
+        updateMap()
+    })
 
     $selectLocationIconMarker = $('#locationmarker-style')
 
@@ -3005,9 +3037,9 @@ $(function () {
             excludedMinIV = $selectExcludeMinIV.val().split(',').map(Number).sort(function (a, b) {
                 return parseInt(a) - parseInt(b)
             })
-            buffer = buffer.filter(function (e) {
+            buffer = excludedMinIV.filter(function (e) {
                 return this.indexOf(e) < 0
-            }, excludedMinIV)
+            }, buffer)
             reincludedPokemon = reincludedPokemon.concat(buffer)
             clearStaleMarkers()
             Store.set('remember_select_exclude_min_iv', excludedMinIV)
@@ -3149,34 +3181,43 @@ $(function () {
         }
         var wrapper = $('#raids-filter-wrapper')
         var gymSidebarWrapper = $('#gym-sidebar-wrapper')
+        var gymRaidsFilterWrapper = $('#gyms-raid-filter-wrapper')
         if (this.checked) {
             lastgyms = false
             wrapper.show(options)
             gymSidebarWrapper.show(options)
+            gymRaidsFilterWrapper.show(options)
         } else {
             lastgyms = false
             wrapper.hide(options)
             if (!Store.get('showGyms')) {
                 gymSidebarWrapper.hide(options)
+                gymRaidsFilterWrapper.hide(options)
             }
         }
         buildSwitchChangeListener(mapData, ['gyms'], 'showRaids').bind(this)()
     })
+    if (Store.get('showGyms') === true || Store.get('showRaids') === true) {
+        $('#gyms-raid-filter-wrapper').toggle(true)
+    }
     $('#gyms-switch').change(function () {
         var options = {
             'duration': 500
         }
         var wrapper = $('#gyms-filter-wrapper')
         var gymSidebarWrapper = $('#gym-sidebar-wrapper')
+        var gymRaidsFilterWrapper = $('#gyms-raid-filter-wrapper')
         if (this.checked) {
             lastgyms = false
             wrapper.show(options)
             gymSidebarWrapper.show(options)
+            gymRaidsFilterWrapper.show(options)
         } else {
             lastgyms = false
             wrapper.hide(options)
             if (!Store.get('showRaids')) {
                 gymSidebarWrapper.hide(options)
+                gymRaidsFilterWrapper.hide(options)
             }
         }
         buildSwitchChangeListener(mapData, ['gyms'], 'showGyms').bind(this)()
